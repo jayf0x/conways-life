@@ -11,7 +11,6 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const getVFromV = (version) => {
-  console.log(version);
   if (!/^(\d+)\.(\d+)\.(\d+)$/.test(version)) {
     console.error(`✗ Invalid package version: ${version}`);
     process.exit(1);
@@ -25,7 +24,6 @@ const file = process.env.PKG_JSON ?? "package.json";
 const pkg = JSON.parse(readFileSync(file, "utf8"));
 let [major, minor, patch] = getVFromV(pkg.version);
 
-let nextVersion = null;
 try {
   const latestTag = execFileSync(
     "git",
@@ -38,7 +36,7 @@ try {
 
   if (latestTag) {
     const prev = getVFromV(latestTag.split("v")[1]);
-    if (prev.major === major && prev.minor === minor) {
+    if (prev[0] === major && prev[1] === minor) {
       patch += 1;
     }
   }
