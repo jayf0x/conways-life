@@ -13,36 +13,23 @@
 
 <!-- README_HEAD:END -->
 
-A little grid of cells that's born, lives, and dies by three rules a mathematician wrote in 1970.
-That's Conway's Game of Life — nothing revolutionary here, it's just fun to watch, and it turns
-out to be a great thing to run quietly behind everything else on a page.
+Conway's Game of Life for the web. Runs the simulation on **WebGPU compute** when the browser has
+it, falls back to **canvas-2D** automatically. Tiny, fully typed, zero dependencies, with a
+one-line React component.
 
 **[▶ Live demo](https://jayf0x.github.io/conways-life/)**
 
-## Why this exists
-
-I wanted a Game of Life running as a background — the kind of ambient thing sitting behind your
-content, always alive, never asking for CPU you notice. I went looking for a library that would
-push the simulation onto the GPU and just went and got out of the way. Couldn't find one: the
-WebGPU implementations I found were demos, not libraries, and everything packaged as a library ran
-the whole thing on the CPU in JavaScript, which is fine for a small grid but starts to chug once
-you want it filling a screen. So: this. It renders on WebGPU compute when your browser has it, and
-falls back to plain canvas-2D without you doing anything different, and it's small enough that
-adding it to a page shouldn't be a decision you agonize over.
-
 ## Features
 
-- **Ambient by default** — drop it on a canvas, it fills the container and runs. No animation loop
-  to manage, no game state to hold.
-- **WebGPU when available, canvas-2D when not** — same API, same visuals, it just picks the fast
-  path silently.
-- **Not locked to Conway's own rule** — feed it any birth/survival rule and it'll simulate that
-  cellular automaton instead (Day & Night ships as a second preset).
-- **Draw on it** — an opt-in interaction layer turns click-and-drag into a paintbrush: draw over
-  empty cells, erase over live ones.
-- **Bring your own patterns** — gliders, RLE pasted straight from LifeWiki, or hand-rolled ASCII
-  art, scattered across the grid on start.
-- **Small.** Zero runtime dependencies, a few kilobytes minified.
+- **WebGPU compute, canvas-2D fallback** — same API and visuals either way; it picks the fast path
+  silently.
+- **One-line React component** — `<Conways />` from `conways-life/react`, tree-shakeable, React as
+  an optional peer dependency.
+- **Any rule** — feed it any birth/survival rule set, not just Conway's B3/S23 (Day & Night ships
+  as a preset).
+- **Draw on it** — opt-in click-and-drag paints live cells and erases over them.
+- **Bring your own patterns** — RLE from LifeWiki, ASCII rows, or `[x, y]` coordinates.
+- **Small & typed** — a few kB minified, zero runtime dependencies, strict TypeScript.
 
 ## Install
 
@@ -73,8 +60,8 @@ attachDrawInteraction(canvas, life);
 // life.destroy();
 ```
 
-That's it for the ambient-background case — one call, it sizes itself to the canvas's container
-and starts breathing. Everything else below is for when you want to poke at it.
+One call: it sizes itself to the canvas's container and starts running. Everything below is for
+when you want to control it.
 
 ## Config
 
@@ -99,8 +86,12 @@ createLife(canvas: HTMLCanvasElement, config?: LifeConfig): LifeControls
 Any of three forms, mixed freely in the same array:
 
 ```typescript
-"bo$2bo$3o!"[(".O.", "..O", "OOO")][([1, 0], [2, 1], [0, 2])]; // RLE (LifeWiki format, header lines ignored) // row strings — any non-`.`/space char is alive // explicit [x, y] coordinates
+"bo$2bo$3o!"              // RLE (LifeWiki format, header lines ignored)
+[".O.", "..O", "OOO"]     // row strings — any non-`.`/space char is alive
+[[1, 0], [2, 1], [0, 2]]  // explicit [x, y] coordinates
 ```
+
+`GLIDER`, `BLINKER`, and `BLOCK` are exported as ready-made coordinate patterns.
 
 ## Controls
 
@@ -115,6 +106,8 @@ listeners attached on your behalf. Wire your own input, or use the interaction h
 | `step()`                   | Advance exactly one generation (works while paused).                       |
 | `reset()`                  | Clear and re-seed.                                                         |
 | `setCell(x, y, alive)`     | Set a single cell by grid coordinate.                                      |
+| `setCells(coords, alive?)` | Set many cells at once. `alive` defaults to `true`.                        |
+| `getAlive()`               | Coordinates of every live cell. Allocates — for inspection, not per-frame. |
 | `isAlive(x, y)`            | Whether a cell is alive. Out-of-bounds is `false`.                         |
 | `cellAt(offsetX, offsetY)` | Convert canvas-local pixels (`event.offsetX/Y`) to a grid cell.            |
 | `setHover(x, y)`           | Highlight a cell with `hoverColor`, or `setHover(null, null)` to clear it. |
@@ -143,26 +136,40 @@ Keyboard shortcuts, touch gestures, anything fancier: write it against the primi
 
 ## React
 
-The [live demo](https://jayf0x.github.io/conways-life/) is a small React app (source in
-[`demo/`](./demo)) built entirely on the public API — no React-specific build of the library
-exists or is needed. The pattern it uses:
+`conways-life/react` is a separate, tree-shakeable entry. React is an optional peer dependency —
+importing it pulls in nothing unless you use it.
 
 ```tsx
-useEffect(() => {
-  const life = createLife(canvasRef.current!, config);
-  const detach = attachDrawInteraction(canvasRef.current!, life);
-  return () => {
-    detach();
-    life.destroy();
-  };
-}, []); // remount (e.g. via a `key`) when `config.rule` needs to change
+import { Conways } from "conways-life/react";
+
+<Conways draw stepMs={120} style={{ width: "100%", height: 400 }} />;
 ```
+
+`<Conways>` takes every `LifeConfig` option as a prop, plus `draw` (wire click/drag, no listeners
+when off) and `onReady`. It forwards a ref to the live `LifeControls`:
+
+```tsx
+const ref = useRef<LifeControls>(null);
+<Conways ref={ref} />;
+// ref.current?.setCells(GLIDER);
+```
+
+Prefer a hook? `useLife(config, { draw })` returns `{ canvasRef, controls }` — bind `canvasRef` to
+your own `<canvas>` and drive it through `controls`.
+
+`config` and `draw` are read once on mount; remount via a React `key` to swap the `rule`.
 
 ## Roadmap
 
-More features coming soon 🚀
-
 <!-- ROADMAP:START -->
+
+- [x] WebGPU compute with canvas-2D fallback
+- [x] Custom rules (any birth/survival set)
+- [x] Click-and-drag drawing
+- [x] React entry — `<Conways>` + `useLife`
+- [x] Batch cell editing (`setCells`) and readback (`getAlive`)
+- [ ] Zoom & pan
+- [ ] `useLifeControls` hook (zoom/pan/interaction toggles)
 
 <!-- ROADMAP:END -->
 

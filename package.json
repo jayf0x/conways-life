@@ -2,7 +2,7 @@
   "name": "conways-life",
   "version": "1.0.3",
   "type": "module",
-  "description": "A tiny, hyper-fast Game of Life you can run in the background — WebGPU compute with an automatic canvas-2D fallback, zero dependencies.",
+  "description": "Hyper-fast Game of Life for the web — WebGPU compute with an automatic canvas-2D fallback, a one-line React component, fully typed, zero dependencies.",
   "author": "jayF0x",
   "license": "MIT",
   "module": "./dist/index.js",
@@ -79,7 +79,9 @@
     "conway",
     "cellular-automaton",
     "webgpu",
+    "gpu",
     "canvas",
+    "react",
     "simulation",
     "typescript"
   ],
