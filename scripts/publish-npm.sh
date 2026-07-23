@@ -28,11 +28,11 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Bumped to $NEW"
+echo "Bumping to $NEW"
 
 # ── commit + tag + push (GHA workflow handles npm publish) ────────────────────
 git add .
-git commit -m "chore: release $NEW" >/dev/null 2>&1
+git commit -m "chore: release $NEW"
 git tag "$TAG"
 git push origin HEAD
 git push origin "$TAG"
