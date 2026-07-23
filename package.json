@@ -1,8 +1,8 @@
 {
-  "name": "weighted-grid",
+  "name": "conways-life",
   "version": "1.0.3",
   "type": "module",
-  "description": "A zero-dependency, weight-driven grid that fills its container using a squarified treemap, agnostic to what's inside each cell.",
+  "description": "A zero-dependency Game of Life engine: WebGPU compute with automatic canvas-2D fallback, pluggable rules, colors, and patterns.",
   "author": "jayF0x",
   "license": "MIT",
   "module": "./dist/index.js",
@@ -11,18 +11,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js"
-    }
-  },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
     }
   },
   "files": [
@@ -49,12 +37,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "@size-limit/file": "^11",
-    "@types/react": "^19.2.17",
     "@webgpu/types": "^0.1.71",
     "bun-types": "^1.3.14",
     "byte-snap": "^1.1.3",
     "plugin-include": "^1.0.2",
-    "react": "^19",
     "size-limit": "^11",
     "typescript": "^5.6.0",
     "vite": "^8.1.0",
@@ -70,21 +56,20 @@
     }
   ],
   "keywords": [
-    "react",
-    "grid",
-    "treemap",
-    "squarified-treemap",
-    "layout-algorithm",
-    "weighted-layout",
-    "responsive-grid",
+    "game-of-life",
+    "conway",
+    "cellular-automaton",
+    "webgpu",
+    "canvas",
+    "simulation",
     "typescript"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jayf0x/weighted-grid.git"
+    "url": "git+https://github.com/jayf0x/conways-life.git"
   },
-  "homepage": "https://github.com/jayf0x/weighted-grid#readme",
+  "homepage": "https://github.com/jayf0x/conways-life#readme",
   "bugs": {
-    "url": "https://github.com/jayf0x/weighted-grid/issues"
+    "url": "https://github.com/jayf0x/conways-life/issues"
   }
 }

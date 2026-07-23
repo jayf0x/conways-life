@@ -1,108 +1,105 @@
-# weighted-grid
+# conways-life
 
 <!-- README_HEAD:START -->
 
-[![npm version](https://img.shields.io/npm/v/weighted-grid)](https://www.npmjs.com/package/weighted-grid)
-[![license](https://img.shields.io/npm/l/weighted-grid)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/conways-life)](https://www.npmjs.com/package/conways-life)
+[![license](https://img.shields.io/npm/l/conways-life)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](./tsconfig.json)
-[![CI](https://github.com/jayf0x/weighted-grid/actions/workflows/ci.yml/badge.svg)](https://github.com/jayf0x/weighted-grid/actions/workflows/ci.yml)
+[![CI](https://github.com/jayf0x/conways-life/actions/workflows/ci.yml/badge.svg)](https://github.com/jayf0x/conways-life/actions/workflows/ci.yml)
 
-
-![Preview](./assets/preview.png)
-
-
-> ⭐ **Star this [repository](https://github.com/jayf0x/weighted-grid) if you'd like to support its growth**
+> ⭐ **Star this [repository](https://github.com/jayf0x/conways-life) if you'd like to support its growth**
 
 <!-- README_HEAD:END -->
 
-A zero-dependency, weight-driven React grid that fills its container, agnostic to what's inside
-each cell. Drop in arbitrary children, optionally tag a few with a `weight`, and the layout
-resolves itself — no coordinates, no manual math.
+A zero-dependency Game of Life engine for a `<canvas>`. Renders on WebGPU compute when available
+and falls back to canvas-2D automatically — same API either way. Pluggable rule sets, colors, and
+seed patterns, so it isn't locked to Conway's own rule.
 
-**[▶ Live demo](https://jayf0x.github.io/weighted-grid/)**
+**[▶ Live demo](https://jayf0x.github.io/conways-life/)**
 
 ## Features
 
-- Placement by a **squarified treemap** — each item's area is proportional to its `weight`, on
-  both axes, so aspect ratios stay near-square instead of collapsing into slivers
-- One `fill` prop toggles "stretch to fill the container" vs. "fixed columns, flows downward"
-- Full TypeScript types, ESM + CJS builds, zero runtime dependencies (`react` is an optional peer)
+- **WebGPU compute** for the simulation step + render, with a transparent canvas-2D fallback when
+  WebGPU is unavailable — same `LifeControls` API in both modes
+- **Any B/S rule** (`{ birth: number[], survive: number[] }`) — ships Conway (B3/S23) and
+  Day & Night (B3678/S34678) as presets, but any cellular automaton rule works
+- **Any CSS colors**, indexed by live-neighbor count — no dependency on a particular stylesheet
+- **Patterns as RLE, row-strings, or coordinates** — paste directly from LifeWiki
+- Optional grid lines, hover highlight, and mouse interactivity — all opt-in, no global listeners
 
 ## Install
 
 ```bash
-bun add weighted-grid
+bun add conways-life
 ```
 ||
 ```bash
-npm install weighted-grid
+npm install conways-life
 ```
 
 ## Quick start
 
-```tsx
-import { Grid, GridItem } from 'weighted-grid/react';
+```typescript
+import { createLife } from 'conways-life';
 
-<Grid cols={7} fill>
-  <GridItem weight={4}>hero</GridItem>
-  <GridItem>a</GridItem>
-  <GridItem>b</GridItem>
-  <GridItem>c</GridItem>
-</Grid>;
+const canvas = document.querySelector('canvas')!;
+const life = createLife(canvas, {
+  interactive: true, // click to toggle cells, hover to preview
+  showGrid: true,
+});
+
+// life.setPaused(true);
+// life.step();
+// life.reset();
+// life.destroy();
 ```
 
-> Want Vue/Svelte support? Please open [an issue](https://github.com/jayf0x/weighted-grid/issues/new) 🙂
-
-Or use the placement algorithm directly, framework-free:
+## Config
 
 ```typescript
-import { packGrid } from 'weighted-grid';
-
-const placed = packGrid([
-  { id: 'hero', weight: 4 },
-  { id: 'a' },
-  { id: 'b' },
-]);
-// → [{ id, x, y, w, h }, ...]  fractions of the unit square (0..1), tiling it exactly
+createLife(canvas: HTMLCanvasElement, config?: LifeConfig): LifeControls
 ```
 
-## `<Grid>` props
-
-| Prop | Type | Default | Description |
+| Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `cols` | `number` | `7` | Nominal column count squarify targets. Not a hard pixel grid — see `packGrid` below. |
-| `rows` | `number` | `7` | Nominal row count; grows automatically if there are more items than `cols * rows`. |
-| `gap` | `number \| string` | `8` | Spacing between items (`px` if a number). |
-| `fill` | `boolean` | `true` | `true`: stretch to fill the container's height exactly. `false`: fixed `rowHeight` per row, container grows downward. |
-| `rowHeight` | `number \| string` | `96` | Row height when `fill` is `false`. Ignored while filling. |
-| `animate` | `boolean` | `true` | Smoothly transition position/size when weights or items change, instead of snapping. Off automatically under `prefers-reduced-motion`. |
-| `showGrid` | `boolean` | `false` | Render faint column guides behind the items. |
-| `className` | `string` | — | Applied to the outer container. |
-| `style` | `CSSProperties` | — | Merged into the outer container's inline style. |
+| `rule` | `LifeRule` | Conway (B3/S23) | `{ birth: number[], survive: number[] }` neighbor counts. |
+| `colors` | `string[]` | blue ramp | CSS colors indexed by live-neighbor count (0..8). Any valid CSS color string. |
+| `patterns` | `LifePattern[]` | a few small spaceships | Seed patterns, scattered on reset. See below. |
+| `targetCols` | `number` | `80` | Approximate column count; cell size derives from container width. |
+| `cellSize` | `number` | — | Fixed cell size in px. Overrides `targetCols`. |
+| `stepMs` | `number` | `240` | Milliseconds per generation. |
+| `showGrid` | `boolean` | `true` | Draw 1px gaps between cells. |
+| `hoverColor` | `string` | — | Highlight color for the hovered empty cell. Omit to disable. |
+| `interactive` | `boolean` | `false` | Attach mouse hover + click-to-toggle listeners to the canvas. |
+| `seed` | `boolean` | `true` | Seed patterns on start/resize. |
 
-## `<GridItem>` props
+### Patterns
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `weight` | `number` | `1` | Relative area — a `2` gets ~twice the space of a `1`. Ignored on any axis pinned by `cols`/`rows`. |
-| `cols` | `number` | — | Pin this item to exactly `cols` grid columns. Giving *any* item a `cols`/`rows` switches the whole `<Grid>` from the free-fill treemap to native CSS Grid (`grid-auto-flow: dense`). |
-| `rows` | `number` | — | Pin this item to exactly `rows` grid rows. |
-
-Pinning `cols`/`rows` on one item switches the whole grid to CSS Grid placement; unpinned items keep filling gaps by `weight`. See [`docs/why.md`](./docs/why.md) for why the two modes share one prop surface.
-
-## `packGrid` (framework-free)
+Any of three forms, mixed freely in the same array:
 
 ```typescript
-packGrid(items: GridInput[], options?: GridPackOptions): GridPlacement[]
+'bo$2bo$3o!'                       // RLE (LifeWiki format, header lines ignored)
+['.O.', '..O', 'OOO']              // row strings — any non-`.`/space char is alive
+[[1, 0], [2, 1], [0, 2]]           // explicit [x, y] coordinates
 ```
 
-| Type | Field | Description |
-| --- | --- | --- |
-| `GridInput` | `id` | `string \| number` — stable identifier, echoed back on the placement. |
-| `GridInput` | `weight?` | Relative area, defaults to `1`. |
-| `GridPackOptions` | `cols?` | Nominal column count (default `7`). |
-| `GridPackOptions` | `rows?` | Nominal row count (default `7`); grows to fit if there are more items than `cols * rows`. |
-| `GridPlacement` | `id`, `x`, `y`, `w`, `h` | `x/y/w/h` are fractions of the unit square (`0..1`) that always tile it exactly, with no gaps or overlaps. |
+## Controls
+
+`createLife` returns a `LifeControls`:
+
+| Member | Description |
+| --- | --- |
+| `destroy()` | Stop the loop, detach listeners, free GPU resources. |
+| `setPaused(paused)` | Pause/resume. |
+| `togglePaused()` | Toggle pause, returns the new state. |
+| `step()` | Advance exactly one generation (works while paused). |
+| `reset()` | Clear and re-seed. |
+| `setCell(x, y, alive)` | Set a single cell by grid coordinate. |
+| `cols`, `rows` | Current grid dimensions. |
+| `mode` | `"gpu"` once WebGPU init succeeds, otherwise `"cpu"`. |
+
+Keyboard shortcuts (pause on space, etc.) aren't wired in — attach your own listener and call
+`togglePaused()`/`step()`.
 
 ## Development
 
@@ -110,9 +107,9 @@ packGrid(items: GridInput[], options?: GridPackOptions): GridPlacement[]
 bun install
 bun run test          # bun test
 bun run typecheck
-bun run build         # vite → dist/ (ESM + CJS + .d.ts)
-bun run format        # biome check --write
-bun run demo:dev      # local demo site
+bun run build          # vite → dist/ (ESM + .d.ts)
+bun run format         # biome check --write
+bun run demo:dev       # local demo site
 ```
 
 ## License

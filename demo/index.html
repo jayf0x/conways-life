@@ -3,22 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
-    <title>weighted-grid — weighted grid for React</title>
+    <meta name="color-scheme" content="dark" />
+    <title>conways-life — WebGPU Game of Life</title>
     <meta
       name="description"
-      content="Interactive demo of weighted-grid: a zero-dependency, weight-driven React grid that fills its container."
+      content="Interactive demo of conways-life: a zero-dependency Game of Life engine with WebGPU compute and a canvas-2D fallback."
     />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23faf9f7'/%3E%3Crect x='3' y='3' width='13' height='11' fill='%23d1470c'/%3E%3Crect x='18' y='3' width='11' height='7' fill='%2317140f' opacity='.15'/%3E%3Crect x='3' y='16' width='9' height='13' fill='%2317140f' opacity='.15'/%3E%3Crect x='14' y='12' width='15' height='17' fill='%2317140f' opacity='.08'/%3E%3C/svg%3E" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230f1950'/%3E%3Crect x='4' y='4' width='7' height='7' fill='%2355afff'/%3E%3Crect x='21' y='4' width='7' height='7' fill='%2355afff'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%2355afff'/%3E%3Crect x='4' y='21' width='7' height='7' fill='%2355afff'/%3E%3Crect x='21' y='21' width='7' height='7' fill='%2355afff'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="./src/main.jsx"></script>
+    <canvas id="life"></canvas>
+    <div id="hud">
+      <strong>conways-life</strong>
+      <span id="mode">…</span>
+      <button id="pause" type="button">Pause</button>
+      <button id="step" type="button">Step</button>
+      <button id="reset" type="button">Reset</button>
+      <button id="rule" type="button">Rule: Conway</button>
+      <span class="hint">click / drag to toggle cells</span>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

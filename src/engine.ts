@@ -1,23 +1,23 @@
-import { CONWAY, DEFAULT_PATTERNS, normalizePattern } from "./patterns.js";
-import type { LifeConfig, LifeControls, LifePattern, LifeRule } from "./types.js";
+import { CONWAY, DEFAULT_PATTERNS, normalizePattern } from './patterns.js';
+import type { LifeConfig, LifeControls, LifeRule } from './types.js';
 
 const DEFAULT_COLORS = [
-  "#0f1950",
-  "#193282",
-  "#2d5fb9",
-  "#55afff",
-  "#4196eb",
-  "#3073c8",
-  "#2250a5",
-  "#163a8c",
-  "#0e266e",
+  '#0f1950',
+  '#193282',
+  '#2d5fb9',
+  '#55afff',
+  '#4196eb',
+  '#3073c8',
+  '#2250a5',
+  '#163a8c',
+  '#0e266e',
 ];
 
 /** Resolve any CSS color to normalized [r,g,b] in 0..1, via a 1x1 canvas. */
 function resolveColor(color: string): [number, number, number] {
-  const c = document.createElement("canvas");
+  const c = document.createElement('canvas');
   c.width = c.height = 1;
-  const ctx = c.getContext("2d")!;
+  const ctx = c.getContext('2d')!;
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, 1, 1);
   const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
@@ -33,7 +33,7 @@ function normalizeColors(colors: string[]): string[] {
 
 /** WGSL boolean expression: `n == a || n == b || ...`, or `false` if empty. */
 function ruleExpr(counts: number[]): string {
-  return counts.length ? counts.map((c) => `n == ${c}u`).join(" || ") : "false";
+  return counts.length ? counts.map((c) => `n == ${c}u`).join(' || ') : 'false';
 }
 
 function buildComputeWGSL(rule: LifeRule): string {
@@ -71,9 +71,7 @@ function buildComputeWGSL(rule: LifeRule): string {
 
 function buildRenderWGSL(colors: string[], showGrid: boolean): string {
   const rgb = colors.map(resolveColor);
-  const arr = rgb
-    .map(([r, g, b]) => `    vec3f(${r}, ${g}, ${b}),`)
-    .join("\n");
+  const arr = rgb.map(([r, g, b]) => `    vec3f(${r}, ${g}, ${b}),`).join('\n');
   // ponytail: grid gap baked at build time (needs a fresh module anyway on color change)
   const gridCut = showGrid
     ? `if (lx == 0u || lx >= p.cell - 1u || ly == 0u || ly >= p.cell - 1u) { return vec4f(0.0); }`
@@ -123,10 +121,7 @@ ${arr}
 `;
 }
 
-export function createLife(
-  canvas: HTMLCanvasElement,
-  config: LifeConfig = {},
-): LifeControls {
+export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): LifeControls {
   const {
     rule = CONWAY,
     colors: colorsIn = DEFAULT_COLORS,
@@ -165,7 +160,7 @@ export function createLife(
   let lastStep = 0;
   let raf = 0;
   let hovered: { x: number; y: number } | null = null;
-  let mode: "cpu" | "gpu" = "cpu";
+  let mode: 'cpu' | 'gpu' = 'cpu';
   let destroyed = false;
 
   const allocGrid = (w: number, h: number) => {
@@ -235,7 +230,7 @@ export function createLife(
     scratch = tmp;
   };
 
-  const ctx2d = canvas.getContext("2d", { willReadFrequently: false })!;
+  const ctx2d = canvas.getContext('2d', { willReadFrequently: false })!;
   ctx2d.imageSmoothingEnabled = false;
   const buckets: number[][] = Array.from({ length: 9 }, () => []);
 
@@ -267,7 +262,7 @@ export function createLife(
   };
 
   const cpuLoop = (now: number) => {
-    if (mode === "gpu") return;
+    if (mode === 'gpu') return;
     if (!paused && now - lastStep > stepMs) {
       lastStep = now;
       cpuStep();
@@ -280,7 +275,7 @@ export function createLife(
   let gpuDevice: GPUDevice | null = null;
   let gpuCanvas: HTMLCanvasElement | null = null;
   let gpuCtx: GPUCanvasContext | null = null;
-  let gpuFormat: GPUTextureFormat = "bgra8unorm";
+  let gpuFormat: GPUTextureFormat = 'bgra8unorm';
   let gpuBufA: GPUBuffer | null = null;
   let gpuBufB: GPUBuffer | null = null;
   let gpuBufCnt: GPUBuffer | null = null;
@@ -356,7 +351,7 @@ export function createLife(
 
   const configureGPUCanvas = () => {
     if (!gpuCanvas || !gpuDevice || !gpuCtx) return;
-    gpuCtx.configure({ device: gpuDevice, format: gpuFormat, alphaMode: "premultiplied" });
+    gpuCtx.configure({ device: gpuDevice, format: gpuFormat, alphaMode: 'premultiplied' });
   };
 
   const initGPU = async () => {
@@ -372,40 +367,39 @@ export function createLife(
       }
       gpuFormat = navigator.gpu.getPreferredCanvasFormat();
 
-      gpuCanvas = document.createElement("canvas");
-      gpuCanvas.style.cssText =
-        "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none";
+      gpuCanvas = document.createElement('canvas');
+      gpuCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none';
       gpuCanvas.width = canvas.width;
       gpuCanvas.height = canvas.height;
       canvas.parentElement!.insertBefore(gpuCanvas, canvas.nextSibling);
 
-      gpuCtx = gpuCanvas.getContext("webgpu") as GPUCanvasContext | null;
-      if (!gpuCtx) throw new Error("no webgpu context");
+      gpuCtx = gpuCanvas.getContext('webgpu') as GPUCanvasContext | null;
+      if (!gpuCtx) throw new Error('no webgpu context');
       configureGPUCanvas();
 
       const computeModule = gpuDevice.createShaderModule({ code: WGSL_COMPUTE });
       const renderModule = gpuDevice.createShaderModule({ code: WGSL_RENDER });
       computePipeline = gpuDevice.createComputePipeline({
-        layout: "auto",
-        compute: { module: computeModule, entryPoint: "main" },
+        layout: 'auto',
+        compute: { module: computeModule, entryPoint: 'main' },
       });
       renderPipeline = gpuDevice.createRenderPipeline({
-        layout: "auto",
-        vertex: { module: renderModule, entryPoint: "vs" },
+        layout: 'auto',
+        vertex: { module: renderModule, entryPoint: 'vs' },
         fragment: {
           module: renderModule,
-          entryPoint: "fs",
+          entryPoint: 'fs',
           targets: [{ format: gpuFormat }],
         },
-        primitive: { topology: "triangle-list" },
+        primitive: { topology: 'triangle-list' },
       });
 
       initGPUBuffers();
 
       cancelAnimationFrame(raf);
       ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-      gpuCanvas.style.display = "block";
-      mode = "gpu";
+      gpuCanvas.style.display = 'block';
+      mode = 'gpu';
       lastStep = performance.now();
       raf = requestAnimationFrame(gpuLoop);
     } catch {
@@ -418,7 +412,7 @@ export function createLife(
 
   const gpuLoop = (now: number) => {
     if (
-      mode !== "gpu" ||
+      mode !== 'gpu' ||
       !gpuDevice ||
       !gpuCtx ||
       !computePipeline ||
@@ -463,8 +457,8 @@ export function createLife(
         {
           view: gpuCtx.getCurrentTexture().createView(),
           clearValue: { r: 0, g: 0, b: 0, a: 0 },
-          loadOp: "clear",
-          storeOp: "store",
+          loadOp: 'clear',
+          storeOp: 'store',
         },
       ],
     });
@@ -522,9 +516,9 @@ export function createLife(
   onResize();
   ro.observe(canvas);
   if (interactive) {
-    canvas.addEventListener("mousedown", onDown);
-    canvas.addEventListener("mousemove", onMove);
-    canvas.addEventListener("mouseleave", onLeave);
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseleave', onLeave);
   }
   raf = requestAnimationFrame(cpuLoop);
   initGPU();
@@ -534,9 +528,9 @@ export function createLife(
       destroyed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
-      canvas.removeEventListener("mousedown", onDown);
-      canvas.removeEventListener("mousemove", onMove);
-      canvas.removeEventListener("mouseleave", onLeave);
+      canvas.removeEventListener('mousedown', onDown);
+      canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onLeave);
       gpuCanvas?.remove();
       gpuBufA?.destroy();
       gpuBufB?.destroy();
@@ -579,4 +573,4 @@ export function createLife(
   };
 }
 
-export type { LifeConfig, LifeControls, LifePattern, LifeRule } from "./types.js";
+export type { LifeConfig, LifeControls, LifePattern, LifeRule } from './types.js';

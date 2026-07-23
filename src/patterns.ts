@@ -1,4 +1,4 @@
-import type { LifePattern, LifeRule } from "./types.js";
+import type { LifePattern, LifeRule } from './types.js';
 
 /** Conway's Game of Life: B3/S23. */
 export const CONWAY: LifeRule = { birth: [3], survive: [2, 3] };
@@ -24,26 +24,26 @@ export interface NormalizedPattern {
  */
 function parseRLE(rle: string): Array<[number, number]> {
   const body = rle
-    .split("\n")
-    .filter((l) => !l.startsWith("#") && !/^\s*x\s*=/.test(l))
-    .join("");
+    .split('\n')
+    .filter((l) => !l.startsWith('#') && !/^\s*x\s*=/.test(l))
+    .join('');
   const cells: Array<[number, number]> = [];
   let x = 0;
   let y = 0;
-  let count = "";
+  let count = '';
   for (const ch of body) {
-    if (ch >= "0" && ch <= "9") {
+    if (ch >= '0' && ch <= '9') {
       count += ch;
       continue;
     }
     const n = count ? parseInt(count, 10) : 1;
-    count = "";
-    if (ch === "$") {
+    count = '';
+    if (ch === '$') {
       y += n;
       x = 0;
-    } else if (ch === "!") {
+    } else if (ch === '!') {
       break;
-    } else if (ch === "b") {
+    } else if (ch === 'b') {
       x += n; // dead run
     } else if (!/\s/.test(ch)) {
       for (let i = 0; i < n; i++) cells.push([x++, y]); // 'o' or any live state
@@ -58,7 +58,7 @@ function parseRows(rows: string[]): Array<[number, number]> {
     const row = rows[y];
     for (let x = 0; x < row.length; x++) {
       const c = row[x];
-      if (c !== "." && c !== " " && c !== "0") cells.push([x, y]);
+      if (c !== '.' && c !== ' ' && c !== '0') cells.push([x, y]);
     }
   }
   return cells;
@@ -67,9 +67,9 @@ function parseRows(rows: string[]): Array<[number, number]> {
 /** Coerce any accepted {@link LifePattern} form into coordinates + extent. */
 export function normalizePattern(pattern: LifePattern): NormalizedPattern {
   let cells: Array<[number, number]>;
-  if (typeof pattern === "string") {
+  if (typeof pattern === 'string') {
     cells = parseRLE(pattern);
-  } else if (pattern.length > 0 && typeof pattern[0] === "string") {
+  } else if (pattern.length > 0 && typeof pattern[0] === 'string') {
     cells = parseRows(pattern as string[]);
   } else {
     cells = (pattern as Array<[number, number]>).map(([x, y]) => [x, y]);
@@ -85,8 +85,8 @@ export function normalizePattern(pattern: LifePattern): NormalizedPattern {
 
 /** Default spaceships/oscillators, one shared set (row-string form). */
 export const DEFAULT_PATTERNS: LifePattern[] = [
-  [".O.", "O..", "OOO"],
-  [".O..O", "O....", "O...O", "OOOO."],
-  ["...O..", ".O...O", "O.....", "O....O", "OOOOO."],
-  ["...OO..", ".O....O", "O......", "O.....O", "OOOOOO."],
+  ['.O.', 'O..', 'OOO'],
+  ['.O..O', 'O....', 'O...O', 'OOOO.'],
+  ['...O..', '.O...O', 'O.....', 'O....O', 'OOOOO.'],
+  ['...OO..', '.O....O', 'O......', 'O.....O', 'OOOOOO.'],
 ];

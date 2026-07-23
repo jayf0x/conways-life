@@ -57,5 +57,5 @@ export interface LifeControls {
   readonly cols: number;
   readonly rows: number;
   /** "gpu" once WebGPU init succeeds, otherwise "cpu". */
-  readonly mode: "cpu" | "gpu";
+  readonly mode: 'cpu' | 'gpu';
 }
