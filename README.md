@@ -158,6 +158,16 @@ useEffect(() => {
 }, []); // remount (e.g. via a `key`) when `config.rule` needs to change
 ```
 
+## Roadmap
+
+More features coming soon 🚀
+
+<!-- ROADMAP:START -->
+
+<!-- ROADMAP:END -->
+
+> generated using [Taglify](https://www.npmjs.com/package/taglify).
+
 ## Development
 
 ```bash
