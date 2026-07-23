@@ -83,6 +83,26 @@ export function normalizePattern(pattern: LifePattern): NormalizedPattern {
   return { cells, width, height };
 }
 
+/** Named starter patterns (coordinate form). Drop into `patterns` or `setCells`. */
+export const GLIDER: Array<[number, number]> = [
+  [1, 0],
+  [2, 1],
+  [0, 2],
+  [1, 2],
+  [2, 2],
+];
+export const BLINKER: Array<[number, number]> = [
+  [0, 0],
+  [1, 0],
+  [2, 0],
+];
+export const BLOCK: Array<[number, number]> = [
+  [0, 0],
+  [1, 0],
+  [0, 1],
+  [1, 1],
+];
+
 /** Default spaceships/oscillators, one shared set (row-string form). */
 export const DEFAULT_PATTERNS: LifePattern[] = [
   ['.O.', 'O..', 'OOO'],

@@ -534,9 +534,19 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
       current[i] = alive ? 1 : 0;
       writeCellToGPU(i, current[i]);
     },
+    setCells(coords, alive = true) {
+      for (const [x, y] of coords) this.setCell(x, y, alive);
+    },
     isAlive(x, y) {
       if (x < 0 || x >= cols || y < 0 || y >= rows) return false;
       return current[y * cols + x] === 1;
+    },
+    getAlive() {
+      const out: Array<[number, number]> = [];
+      for (let i = 0; i < current.length; i++) {
+        if (current[i]) out.push([i % cols, (i / cols) | 0]);
+      }
+      return out;
     },
     cellAt(offsetX, offsetY) {
       return { x: Math.floor(offsetX / cell), y: Math.floor(offsetY / cell) };

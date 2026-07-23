@@ -8,7 +8,10 @@ export default defineConfig({
   plugins: [dts({ rollupTypes: true }), snapBuild.vite({ dir: 'dist' }), include('./README.md')],
   build: {
     lib: {
-      entry: { index: resolve(__dirname, 'src/index.ts') },
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        react: resolve(__dirname, 'src/react.tsx'),
+      },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },
@@ -16,6 +19,8 @@ export default defineConfig({
     minify: 'oxc',
     sourcemap: false,
     rollupOptions: {
+      // Keep React a peer dependency, out of the bundle.
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: { exports: 'named' },
     },
   },

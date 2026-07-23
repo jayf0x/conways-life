@@ -51,6 +51,10 @@ export interface LifeControls {
   reset: () => void;
   /** Set a single cell alive/dead by grid coordinate. */
   setCell: (x: number, y: number, alive: boolean) => void;
+  /** Set many cells at once. `alive` defaults to true. Out-of-bounds coords are ignored. */
+  setCells: (coords: Array<[number, number]>, alive?: boolean) => void;
+  /** Coordinates of every live cell. Allocates — for inspection, not per-frame use. */
+  getAlive: () => Array<[number, number]>;
   /** Whether the cell at a grid coordinate is alive. Out-of-bounds is false. */
   isAlive: (x: number, y: number) => boolean;
   /** Convert canvas-local pixel coordinates (e.g. `event.offsetX/Y`) to a grid cell. */
