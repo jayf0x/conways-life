@@ -11,6 +11,7 @@
         "@webgpu/types": "^0.1.71",
         "bun-types": "^1.3.14",
         "byte-snap": "^1.1.3",
+        "conways-life": "^1.0.4",
         "plugin-include": "^1.0.2",
         "react": "^19",
         "size-limit": "^11",
@@ -183,6 +184,8 @@
     "compare-versions": ["compare-versions@6.1.1", "", {}, "sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg=="],
 
     "confbox": ["confbox@0.2.4", "", {}, "sha512-ysOGlgTFbN2/Y6Cg3Iye8YKulHw+R2fNXHrgSmXISQdMnomY6eNDprVdW9R5xBguEqI954+S6709UyiO7B+6OQ=="],
+
+    "conways-life": ["conways-life@1.0.4", "", { "peerDependencies": { "react": ">=18" }, "optionalPeers": ["react"] }, "sha512-KWp+m65gAQzCYAJmTN/xZTLfBRFz5w2F/EGrfVdIrEWALug1cybYqlCUdFiHH4bx5ucjKPEjc7SOHU8EkFUL0Q=="],
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
