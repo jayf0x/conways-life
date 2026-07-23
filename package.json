@@ -1,6 +1,6 @@
 {
   "name": "conways-life",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "description": "Hyper-fast Game of Life for the web — WebGPU compute with an automatic canvas-2D fallback, a one-line React component, fully typed, zero dependencies.",
   "author": "jayF0x",
