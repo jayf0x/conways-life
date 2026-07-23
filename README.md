@@ -9,7 +9,7 @@
 
 ![Preview](./assets/preview.png)
 
-> ⭐ **Star this [repository](https://github.com/jayf0x/conways-life) if you'd like to support its growth**
+> **Leave a ⭐ if you found it useful**
 
 <!-- README_HEAD:END -->
 
