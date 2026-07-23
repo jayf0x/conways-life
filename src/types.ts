@@ -34,10 +34,8 @@ export interface LifeConfig {
   stepMs?: number;
   /** Draw 1px gaps between cells. Default: true. */
   showGrid?: boolean;
-  /** Highlight color for the hovered empty cell. Omit to disable. */
+  /** Color for the cell under `setHover`. Omit to disable the highlight. */
   hoverColor?: string;
-  /** Attach mouse hover + click-to-toggle listeners to the canvas. Default: false. */
-  interactive?: boolean;
   /** Seed patterns on start / resize. Default: true. */
   seed?: boolean;
 }
@@ -53,9 +51,19 @@ export interface LifeControls {
   reset: () => void;
   /** Set a single cell alive/dead by grid coordinate. */
   setCell: (x: number, y: number, alive: boolean) => void;
+  /** Whether the cell at a grid coordinate is alive. Out-of-bounds is false. */
+  isAlive: (x: number, y: number) => boolean;
+  /** Convert canvas-local pixel coordinates (e.g. `event.offsetX/Y`) to a grid cell. */
+  cellAt: (offsetX: number, offsetY: number) => { x: number; y: number };
+  /** Highlight a cell with `hoverColor`, or pass `null` to clear it. */
+  setHover: (x: number | null, y: number | null) => void;
+  /** Toggle the 1px grid lines at runtime. */
+  setShowGrid: (show: boolean) => void;
   /** Current grid dimensions. */
   readonly cols: number;
   readonly rows: number;
+  /** Current cell size in px. */
+  readonly cellSize: number;
   /** "gpu" once WebGPU init succeeds, otherwise "cpu". */
   readonly mode: 'cpu' | 'gpu';
 }

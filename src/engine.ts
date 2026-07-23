@@ -69,20 +69,16 @@ function buildComputeWGSL(rule: LifeRule): string {
 `;
 }
 
-function buildRenderWGSL(colors: string[], showGrid: boolean): string {
+function buildRenderWGSL(colors: string[]): string {
   const rgb = colors.map(resolveColor);
   const arr = rgb.map(([r, g, b]) => `    vec3f(${r}, ${g}, ${b}),`).join('\n');
-  // ponytail: grid gap baked at build time (needs a fresh module anyway on color change)
-  const gridCut = showGrid
-    ? `if (lx == 0u || lx >= p.cell - 1u || ly == 0u || ly >= p.cell - 1u) { return vec4f(0.0); }`
-    : ``;
   return `
   const CELL_COLORS: array<vec3f, 9> = array<vec3f, 9>(
 ${arr}
   );
 
   struct P {
-    cols: u32, rows: u32, cell: u32,
+    cols: u32, rows: u32, cell: u32, grid: u32,
     hx: i32, hy: i32,
     hr: f32, hg: f32, hb: f32,
   }
@@ -104,7 +100,7 @@ ${arr}
     if (cx >= p.cols || cy >= p.rows) { return vec4f(0.0); }
 
     let lx = px % p.cell; let ly = py % p.cell;
-    ${gridCut}
+    if (p.grid == 1u && (lx == 0u || lx >= p.cell - 1u || ly == 0u || ly >= p.cell - 1u)) { return vec4f(0.0); }
 
     let i = cy * p.cols + cx;
 
@@ -129,17 +125,16 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
     targetCols = 80,
     cellSize,
     stepMs = 240,
-    showGrid = true,
+    showGrid: showGridInitial = true,
     hoverColor,
-    interactive = false,
     seed: doSeed = true,
   } = config;
 
   const colors = normalizeColors(colorsIn);
   const WGSL_COMPUTE = buildComputeWGSL(rule);
-  const WGSL_RENDER = buildRenderWGSL(colors, showGrid);
+  const WGSL_RENDER = buildRenderWGSL(colors);
   const hoverRGB = hoverColor ? resolveColor(hoverColor) : ([0, 0, 0] as const);
-  const inset = showGrid ? 1 : 0;
+  let gridOn = showGridInitial;
 
   // Precompute rule lookup for the CPU path.
   const birthSet = new Uint8Array(9);
@@ -235,6 +230,7 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
   const buckets: number[][] = Array.from({ length: 9 }, () => []);
 
   const cpuDraw = () => {
+    const inset = gridOn ? 1 : 0;
     ctx2d.clearRect(0, 0, canvas.width, canvas.height);
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
@@ -289,7 +285,7 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
   let renderBG_B: GPUBindGroup | null = null;
   let gpuFlip = false;
 
-  const rpBuf = new ArrayBuffer(32);
+  const rpBuf = new ArrayBuffer(36);
   const rpU32 = new Uint32Array(rpBuf);
   const rpI32 = new Int32Array(rpBuf);
   const rpF32 = new Float32Array(rpBuf);
@@ -313,7 +309,7 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     gpuBufParams = gpuDevice.createBuffer({
-      size: 32,
+      size: 36,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -433,11 +429,12 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
     rpU32[0] = cols;
     rpU32[1] = rows;
     rpU32[2] = cell;
-    rpI32[3] = hovered ? hovered.x : -1;
-    rpI32[4] = hovered ? hovered.y : -1;
-    rpF32[5] = hoverRGB[0];
-    rpF32[6] = hoverRGB[1];
-    rpF32[7] = hoverRGB[2];
+    rpU32[3] = gridOn ? 1 : 0;
+    rpI32[4] = hovered ? hovered.x : -1;
+    rpI32[5] = hovered ? hovered.y : -1;
+    rpF32[6] = hoverRGB[0];
+    rpF32[7] = hoverRGB[1];
+    rpF32[8] = hoverRGB[2];
     gpuDevice.queue.writeBuffer(gpuBufParams, 0, rpBuf);
 
     const enc = gpuDevice.createCommandEncoder();
@@ -497,29 +494,8 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
     if (r) onResize(r.width, r.height);
   });
 
-  // ponytail: mouse only, opt-in. Keyboard is the consumer's job — no window listeners.
-  const onMove = (e: MouseEvent) => {
-    hovered = { x: Math.floor(e.offsetX / cell), y: Math.floor(e.offsetY / cell) };
-  };
-  const onLeave = () => {
-    hovered = null;
-  };
-  const onDown = (e: MouseEvent) => {
-    const x = Math.floor(e.offsetX / cell);
-    const y = Math.floor(e.offsetY / cell);
-    if (x < 0 || x >= cols || y < 0 || y >= rows) return;
-    const i = y * cols + x;
-    current[i] = current[i] ? 0 : 1;
-    writeCellToGPU(i, current[i]);
-  };
-
   onResize();
   ro.observe(canvas);
-  if (interactive) {
-    canvas.addEventListener('mousedown', onDown);
-    canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseleave', onLeave);
-  }
   raf = requestAnimationFrame(cpuLoop);
   initGPU();
 
@@ -528,9 +504,6 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
       destroyed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
-      canvas.removeEventListener('mousedown', onDown);
-      canvas.removeEventListener('mousemove', onMove);
-      canvas.removeEventListener('mouseleave', onLeave);
       gpuCanvas?.remove();
       gpuBufA?.destroy();
       gpuBufB?.destroy();
@@ -561,11 +534,27 @@ export function createLife(canvas: HTMLCanvasElement, config: LifeConfig = {}): 
       current[i] = alive ? 1 : 0;
       writeCellToGPU(i, current[i]);
     },
+    isAlive(x, y) {
+      if (x < 0 || x >= cols || y < 0 || y >= rows) return false;
+      return current[y * cols + x] === 1;
+    },
+    cellAt(offsetX, offsetY) {
+      return { x: Math.floor(offsetX / cell), y: Math.floor(offsetY / cell) };
+    },
+    setHover(x, y) {
+      hovered = x === null || y === null ? null : { x, y };
+    },
+    setShowGrid(show) {
+      gridOn = show;
+    },
     get cols() {
       return cols;
     },
     get rows() {
       return rows;
+    },
+    get cellSize() {
+      return cell;
     },
     get mode() {
       return mode;

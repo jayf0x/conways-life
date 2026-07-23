@@ -4,25 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
-    <title>conways-life — WebGPU Game of Life</title>
+    <title>Conway's Life — a tiny universe, breathing on your background</title>
     <meta
       name="description"
-      content="Interactive demo of conways-life: a zero-dependency Game of Life engine with WebGPU compute and a canvas-2D fallback."
+      content="A hyper-lightweight Game of Life you can leave running behind everything. Draw your own patterns, watch them live and die."
     />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230f1950'/%3E%3Crect x='4' y='4' width='7' height='7' fill='%2355afff'/%3E%3Crect x='21' y='4' width='7' height='7' fill='%2355afff'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%2355afff'/%3E%3Crect x='4' y='21' width='7' height='7' fill='%2355afff'/%3E%3Crect x='21' y='21' width='7' height='7' fill='%2355afff'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <canvas id="life"></canvas>
-    <div id="hud">
-      <strong>conways-life</strong>
-      <span id="mode">…</span>
-      <button id="pause" type="button">Pause</button>
-      <button id="step" type="button">Step</button>
-      <button id="reset" type="button">Reset</button>
-      <button id="rule" type="button">Rule: Conway</button>
-      <span class="hint">click / drag to toggle cells</span>
-    </div>
-    <script type="module" src="./src/main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

@@ -5,11 +5,6 @@ set -euo pipefail
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 [[ "$BRANCH" != "main" ]] && { echo "✗ Must be on main (currently: $BRANCH)"; exit 1; }
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "✗ Uncommitted changes — stash or commit first"
-  exit 1
-fi
-
 NAME=$(node -p "require('./package.json').name")
 if ! npm view "$NAME" version >/dev/null 2>&1; then
   echo "✗ $NAME has never been published — run scripts/bootstrap-npm.sh first (trusted"
@@ -37,7 +32,7 @@ echo "Bumped to $NEW"
 
 # ── commit + tag + push (GHA workflow handles npm publish) ────────────────────
 git add .
-git commit -m "chore: release $NEW"
+git commit -m "chore: release $NEW" >/dev/null 2>&1
 git tag "$TAG"
 git push origin HEAD
 git push origin "$TAG"

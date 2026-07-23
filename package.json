@@ -2,7 +2,7 @@
   "name": "conways-life",
   "version": "1.0.3",
   "type": "module",
-  "description": "A zero-dependency Game of Life engine: WebGPU compute with automatic canvas-2D fallback, pluggable rules, colors, and patterns.",
+  "description": "A tiny, hyper-fast Game of Life you can run in the background — WebGPU compute with an automatic canvas-2D fallback, zero dependencies.",
   "author": "jayF0x",
   "license": "MIT",
   "module": "./dist/index.js",
